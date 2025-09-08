@@ -8,6 +8,10 @@ let clients = {}; // id -> {name, ip, port}
 
 const nameInput = document.getElementById("nameInput");
 const serverInput = document.getElementById("serverInput");
+// Sugerir wss:// en el placeholder si la web está en https y puerto correcto
+if (window.location.protocol === "https:") {
+  serverInput.placeholder = "wss://localhost:24454";
+}
 const connectBtn = document.getElementById("connectBtn");
 const statusSpan = document.getElementById("status");
 const usersList = document.getElementById("usersList");
@@ -46,12 +50,26 @@ connectBtn.onclick = () => {
     return;
   }
   const name = nameInput.value.trim() || "Anon";
-  const url = (WS_URL && WS_URL.length) ? WS_URL : (serverInput.value.trim() || null);
+  let url = (WS_URL && WS_URL.length) ? WS_URL : (serverInput.value.trim() || null);
   if (!url) {
-    alert("Especifica la URL del WebSocket (ej: ws://mi_dominio:9000)");
+    alert("Especifica la URL del WebSocket (ej: wss://localhost:24454)");
     return;
   }
-  ws = new WebSocket(url);
+  // Si la web está en https, forzar wss://
+  if (window.location.protocol === "https:" && url.startsWith("ws://")) {
+    url = "wss://" + url.slice(5);
+  }
+  if (window.location.protocol === "https:" && !url.startsWith("wss://")) {
+    url = url.replace(/^ws:\/\//, "wss://");
+    if (!url.startsWith("wss://")) url = "wss://" + url.replace(/^.*?:\/\//, "");
+  }
+  try {
+    ws = new WebSocket(url);
+  } catch (err) {
+    alert("URL de WebSocket inválida: " + url);
+    statusSpan.textContent = "Error URL";
+    return;
+  }
   statusSpan.textContent = "Conectando...";
   ws.onopen = () => {
     statusSpan.textContent = "Conectado";
@@ -80,6 +98,7 @@ connectBtn.onclick = () => {
   };
   ws.onerror = (e) => {
     statusSpan.textContent = "Error";
+    appendMsg(`<div class='meta'>[error] No se pudo conectar a ${url}. ¿Servidor activo? ¿Certificado válido? ¿Puerto correcto?</div>`);
     console.error("WebSocket error:", e);
   };
 };

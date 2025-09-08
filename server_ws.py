@@ -1,13 +1,13 @@
 # server_ws.py (fix: handler acepta path opcional, no limpia consola cada vez)
+
 import asyncio
 import json
 import uuid
 import traceback
 from typing import Dict, Any, Optional
-
+import ssl
 import websockets
 from websockets import exceptions
-
 from rich import print
 from rich.table import Table
 from rich.console import Console
@@ -16,8 +16,12 @@ from rich.pretty import Pretty
 
 console = Console()
 
+
 HOST = "0.0.0.0"
-PORT = 9000
+PORT = 24454  # Cambia el puerto si lo deseas
+USE_SSL = True  # Cambia a False si no quieres SSL
+CERT_FILE = "cert.pem"
+KEY_FILE = "key.pem"
 
 # clients: id -> {'ws': WebSocket, 'name': str, 'addr': (ip,port)}
 clients: Dict[str, dict] = {}
@@ -199,11 +203,18 @@ async def register_handler(ws: Any, path: Optional[str] = None):
         traceback.print_exc()
         await remove_client(client_id)
 
+
 async def main():
-    console.print(Panel("[bold green]Servidor WebSocket con Rich[/bold green]\nEscuchando conexiones", title="Server"))
+    ssl_context = None
+    proto = "ws"
+    if USE_SSL:
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_context.load_cert_chain(certfile=CERT_FILE, keyfile=KEY_FILE)
+        proto = "wss"
+    console.print(Panel(f"[bold green]Servidor WebSocket con Rich[/bold green]\nEscuchando conexiones", title="Server"))
     # websockets.serve puede llamar al handler con 1 o 2 args dependiendo de la versión.
-    async with websockets.serve(register_handler, HOST, PORT):
-        console.print(f"[bold]Listening on[/] ws://{HOST}:{PORT}")
+    async with websockets.serve(register_handler, HOST, PORT, ssl=ssl_context):
+        console.print(f"[bold]Listening on[/] {proto}://{HOST}:{PORT}")
         await show_clients_table()
         await asyncio.Future()  # keep running
 
