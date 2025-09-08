@@ -153,9 +153,25 @@ header h1 {
   transition: all 0.2s;
 }
 
-.users li:hover {
+.users li:hover:not(.current-user) {
   background: var(--card-hover);
   transform: translateY(-1px);
+}
+
+.users li.current-user {
+  background: var(--accent);
+  color: white;
+  cursor: default;
+  position: relative;
+  padding-right: 2rem;
+}
+
+.users li.current-user::after {
+  content: "👤";
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .chat {

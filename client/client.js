@@ -34,12 +34,19 @@ function renderUsers() {
     const li = document.createElement("li");
     li.textContent = `${c.name} (${id}) @ ${c.ip}:${c.port}`;
     li.dataset.id = id;
-    li.onclick = () => {
-      // seleccionar como objetivo privado
-      document.querySelector("input[name=mode][value=private]").checked = true;
-      privateTargetSpan.textContent = ` -> ${c.name} (${id})`;
-      privateTargetSpan.dataset.target = id;
-    };
+    
+    // Destacar y deshabilitar si es el usuario actual
+    if (id === myId) {
+      li.classList.add("current-user");
+      li.title = "Este eres tú";
+    } else {
+      li.onclick = () => {
+        // seleccionar como objetivo privado
+        document.querySelector("input[name=mode][value=private]").checked = true;
+        privateTargetSpan.textContent = ` -> ${c.name} (${id})`;
+        privateTargetSpan.dataset.target = id;
+      };
+    }
     usersList.appendChild(li);
   });
 }

@@ -115,8 +115,6 @@ async def handle_message(sender_id: str, msg: dict):
         async with clients_lock:
             items = list(clients.items())
         for cid, info in items:
-            if cid == sender_id:
-                continue
             try:
                 await send_json(info["ws"], payload)
             except Exception:
