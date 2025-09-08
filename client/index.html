@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chat WebSocket - Cliente</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>WebChat (WebSocket)</h1>
+    </header>
+
+    <section class="connect">
+      <input id="nameInput" placeholder="Tu nombre" />
+      <input id="serverInput" placeholder="WebSocket URL (ej: ws://example.com:9000)" />
+      <button id="connectBtn">Conectar</button>
+      <span id="status">Desconectado</span>
+    </section>
+
+    <section class="main">
+      <aside class="users">
+        <h3>Usuarios</h3>
+        <ul id="usersList"></ul>
+      </aside>
+
+      <section class="chat">
+        <div id="messages" class="messages"></div>
+
+        <div class="composer">
+          <div class="mode">
+            <label><input type="radio" name="mode" value="group" checked /> Grupo</label>
+            <label><input type="radio" name="mode" value="private" /> Privado</label>
+            <span id="privateTarget"></span>
+          </div>
+
+          <input id="messageInput" placeholder="Escribe tu mensaje..." />
+          <button id="sendBtn">Enviar</button>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>

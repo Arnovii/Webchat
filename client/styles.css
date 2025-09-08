@@ -1,0 +1,36 @@
+/* styles.css - simple y limpio */
+:root{
+  --bg:#0f1724;
+  --card:#0b1220;
+  --accent:#06b6d4;
+  --muted:#9aa4b2;
+  --text:#e6eef6;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+body{margin:0;background:linear-gradient(180deg,#071025, #071428);color:var(--text);min-height:100vh;padding:20px}
+.app{max-width:1100px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+header h1{margin:0;color:var(--accent)}
+.connect{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.connect input{padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--text)}
+.connect button{background:var(--accent);color:#012;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+.connect #status{margin-left:8px;color:var(--muted)}
+
+.main{display:flex;gap:12px}
+.users{width:260px;background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;height:60vh;overflow:auto}
+.users h3{margin-top:0}
+.users ul{list-style:none;padding:0;margin:0}
+.users li{padding:8px;border-radius:6px;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.02)}
+.users li:hover{background:rgba(255,255,255,0.02)}
+
+.chat{flex:1;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;height:60vh}
+.messages{flex:1;overflow:auto;padding:6px;border-radius:6px}
+.msg{padding:8px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
+.msg .meta{font-size:12px;color:var(--muted);margin-bottom:4px}
+.msg .text{white-space:pre-wrap}
+
+.composer{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.composer input[type="text"], .composer input[type="search"]{padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.01);color:var(--text)}
+.composer .mode{display:flex;align-items:center;gap:12px}
+.composer button{align-self:flex-end;background:var(--accent);color:#012;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+#privateTarget{font-size:13px;color:var(--muted)}
