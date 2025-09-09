@@ -5,6 +5,8 @@ let WS_URL = ""; // opcional: "ws://mi_dominio:9000" o "wss://mi_dominio"
 let ws = null;
 let myId = null;
 let clients = {}; // id -> {name, ip, port}
+let selectedUserName = ""; // almacena el nombre del usuario seleccionado
+
 
 const nameInput = document.getElementById("nameInput");
 const serverInput = document.getElementById("serverInput");
@@ -45,6 +47,7 @@ function renderUsers() {
         document.querySelector("input[name=mode][value=private]").checked = true;
         privateTargetSpan.textContent = ` -> ${c.name} (${id})`;
         privateTargetSpan.dataset.target = id;
+        selectedUserName = c.name; // <<< aquí se guarda el nombre seleccionado
       };
     }
     usersList.appendChild(li);
@@ -122,11 +125,26 @@ function handleMessage(msg) {
       renderUsers();
       break;
     case "message":
+      const isSender = msg.from === myId;
+      const d = document.createElement("div");
+      d.className = `msg ${isSender ? 'sent' : 'received'}`;
+      
       if (msg.group) {
-        appendMsg(`<div class="meta">[GRUPO] ${msg.name} (${msg.from})</div><div class="text">${escapeHtml(msg.text)}</div>`);
+        d.innerHTML = `
+          <div class="meta">[GRUPO] ${isSender ? 'Tú' : msg.name}</div>
+          <div class="text">${escapeHtml(msg.text)}</div>
+        `;
       } else {
-        appendMsg(`<div class="meta">[PRIVADO] ${msg.name} (${msg.from})</div><div class="text">${escapeHtml(msg.text)}</div>`);
+        // Para mensajes privados, usamos el nombre del destinatario o remitente según corresponda
+        const otherUser = isSender ? (selectedUserName || clients[msg.to]?.name || 'desconocido') : msg.name;
+
+        d.innerHTML = `
+          <div class="meta">[PRIVADO] ${isSender ? `Tú → ${otherUser}` : `${otherUser} → Tú`}</div>
+          <div class="text">${escapeHtml(msg.text)}</div>
+        `;
       }
+      messagesDiv.appendChild(d);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
       break;
     case "info":
       appendMsg(`<div class="meta">[info] ${escapeHtml(msg.message)}</div>`);

@@ -143,8 +143,9 @@ async def handle_message(sender_id: str, msg: dict):
         }
         console.print(f"[magenta][PRIVATE][/magenta] {sender_name} ({sender_id}) -> {target['name']} ({to_id}): {text}")
         try:
+            # Enviar el mensaje tanto al destinatario como al remitente
             await send_json(target["ws"], payload)
-            await send_json(sender["ws"], {"type": "info", "message": "mensaje privado enviado"})
+            await send_json(sender["ws"], payload)  # El remitente también ve su mensaje
         except Exception:
             await send_json(sender["ws"], {"type": "error", "message": "failed to deliver"})
             await remove_client(to_id)
