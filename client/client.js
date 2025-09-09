@@ -23,8 +23,29 @@ const fileInput = document.getElementById("fileInput");
 const attachBtn = document.getElementById("attachBtn");
 const sendBtn = document.getElementById("sendBtn");
 const privateTargetSpan = document.getElementById("privateTarget");
+const modeInputs = document.querySelectorAll('input[name="mode"]');
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Función para limpiar la selección de usuario privado
+function clearPrivateSelection() {
+  const selectedUser = document.querySelector('.selected-user');
+  if (selectedUser) {
+    selectedUser.classList.remove('selected-user');
+  }
+  privateTargetSpan.textContent = "";
+  privateTargetSpan.dataset.target = "";
+  selectedUserName = "";
+}
+
+// Manejador para cambios en el modo de chat
+modeInputs.forEach(input => {
+  input.addEventListener('change', (e) => {
+    if (e.target.value === 'group') {
+      clearPrivateSelection();
+    }
+  });
+});
 
 function appendMsg(html) {
   const d = document.createElement("div");
@@ -47,11 +68,17 @@ function renderUsers() {
       li.title = "Este eres tú";
     } else {
       li.onclick = () => {
+        // Limpiar selección previa
+        clearPrivateSelection();
+        
         // seleccionar como objetivo privado
         document.querySelector("input[name=mode][value=private]").checked = true;
-        privateTargetSpan.textContent = ` -> ${c.name} (${id})`;
+        privateTargetSpan.textContent = ` → ${c.name} (${id})`;
         privateTargetSpan.dataset.target = id;
-        selectedUserName = c.name; // <<< aquí se guarda el nombre seleccionado
+        selectedUserName = c.name;
+        
+        // Marcar visualmente el usuario seleccionado
+        li.classList.add('selected-user');
       };
     }
     usersList.appendChild(li);
