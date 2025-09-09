@@ -172,7 +172,7 @@ function renderFile(file) {
     return `
       <div class="text">
         <img src="${file.data}" style="max-width: 100%; max-height: 300px; border-radius: 0.5rem;" />
-        <a class="file-attachment" href="${file.data}" download="${escapeHtml(file.name)}">
+        <a class="file-attachment" href="${file.data}" download="${escapeHtml(file.name)}" style="color: white;">
           <i class="fas fa-download"></i>${escapeHtml(file.name)} (${formatFileSize(file.size)})
         </a>
       </div>
@@ -182,7 +182,7 @@ function renderFile(file) {
   // Para otros tipos de archivo, mostrar un enlace de descarga
   return `
     <div class="text">
-      <a class="file-attachment" href="${file.data}" download="${escapeHtml(file.name)}">
+      <a class="file-attachment" href="${file.data}" download="${escapeHtml(file.name)}" style="color: white;">
         <i class="fas fa-file"></i>${escapeHtml(file.name)} (${formatFileSize(file.size)})
       </a>
     </div>
@@ -244,21 +244,31 @@ fileInput.onchange = async () => {
     return;
   }
 
-  try {
-    const base64 = await fileToBase64(file);
-    const mode = document.querySelector("input[name=mode]:checked").value;
-    
-    const message = {
-      type: mode,
-      file: {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: base64
-      }
-    };
+    try {
+      // Mostrar mensaje de carga
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'msg';
+      loadingDiv.innerHTML = `
+        <div class="meta">[sistema] Cargando archivo ${file.name} (${formatFileSize(file.size)})...</div>
+      `;
+      messagesDiv.appendChild(loadingDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-    if (mode === "private") {
+      const base64 = await fileToBase64(file);
+      const mode = document.querySelector("input[name=mode]:checked").value;
+      
+      // Remover mensaje de carga
+      messagesDiv.removeChild(loadingDiv);
+      
+      const message = {
+        type: mode,
+        file: {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: base64
+        }
+      };    if (mode === "private") {
       const to = privateTargetSpan.dataset.target;
       if (!to) {
         alert("Selecciona un usuario para enviarle el archivo (clic en la lista).");

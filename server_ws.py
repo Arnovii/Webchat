@@ -249,7 +249,14 @@ async def main():
         proto = "wss"
     console.print(Panel(f"[bold green]Servidor WebSocket con Rich[/bold green]\nEscuchando conexiones", title="Server"))
     # websockets.serve puede llamar al handler con 1 o 2 args dependiendo de la versión.
-    async with websockets.serve(register_handler, HOST, PORT, ssl=ssl_context):
+    # Configurar el tamaño máximo del mensaje a 6MB
+    async with websockets.serve(
+        register_handler,
+        HOST,
+        PORT,
+        ssl=ssl_context,
+        max_size=6 * 1024 * 1024,  # 6MB para permitir archivos de 5MB + overhead
+    ):
         console.print(f"[bold]Listening on[/] {proto}://{HOST}:{PORT}")
         await show_clients_table()
         await asyncio.Future()  # keep running
