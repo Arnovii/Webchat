@@ -19,8 +19,12 @@ const statusSpan = document.getElementById("status");
 const usersList = document.getElementById("usersList");
 const messagesDiv = document.getElementById("messages");
 const messageInput = document.getElementById("messageInput");
+const fileInput = document.getElementById("fileInput");
+const attachBtn = document.getElementById("attachBtn");
 const sendBtn = document.getElementById("sendBtn");
 const privateTargetSpan = document.getElementById("privateTarget");
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 function appendMsg(html) {
   const d = document.createElement("div");
@@ -129,10 +133,11 @@ function handleMessage(msg) {
       const d = document.createElement("div");
       d.className = `msg ${isSender ? 'sent' : 'received'}`;
       
+      const isFile = msg.file != null;
       if (msg.group) {
         d.innerHTML = `
           <div class="meta">[GRUPO] ${isSender ? 'Tú' : msg.name}</div>
-          <div class="text">${escapeHtml(msg.text)}</div>
+          ${isFile ? renderFile(msg.file) : `<div class="text">${escapeHtml(msg.text)}</div>`}
         `;
       } else {
         // Para mensajes privados, usamos el nombre del destinatario o remitente según corresponda
@@ -140,7 +145,7 @@ function handleMessage(msg) {
 
         d.innerHTML = `
           <div class="meta">[PRIVADO] ${isSender ? `Tú → ${otherUser}` : `${otherUser} → Tú`}</div>
-          <div class="text">${escapeHtml(msg.text)}</div>
+          ${isFile ? renderFile(msg.file) : `<div class="text">${escapeHtml(msg.text)}</div>`}
         `;
       }
       messagesDiv.appendChild(d);
@@ -159,6 +164,35 @@ function handleMessage(msg) {
 
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+}
+
+function renderFile(file) {
+  // Si es una imagen, mostrarla directamente
+  if (file.type.startsWith('image/')) {
+    return `
+      <div class="text">
+        <img src="${file.data}" style="max-width: 100%; max-height: 300px; border-radius: 0.5rem;" />
+        <a class="file-attachment" href="${file.data}" download="${escapeHtml(file.name)}">
+          <i class="fas fa-download"></i>${escapeHtml(file.name)} (${formatFileSize(file.size)})
+        </a>
+      </div>
+    `;
+  }
+  
+  // Para otros tipos de archivo, mostrar un enlace de descarga
+  return `
+    <div class="text">
+      <a class="file-attachment" href="${file.data}" download="${escapeHtml(file.name)}">
+        <i class="fas fa-file"></i>${escapeHtml(file.name)} (${formatFileSize(file.size)})
+      </a>
+    </div>
+  `;
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 sendBtn.onclick = () => {
@@ -185,3 +219,58 @@ sendBtn.onclick = () => {
 messageInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendBtn.click();
 });
+
+// Manejador para el botón de adjuntar
+attachBtn.onclick = () => fileInput.click();
+
+// Función para convertir archivo a base64
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+// Manejador para cuando se selecciona un archivo
+fileInput.onchange = async () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  if (file.size > MAX_FILE_SIZE) {
+    alert("El archivo es demasiado grande. Máximo 5MB.");
+    fileInput.value = "";
+    return;
+  }
+
+  try {
+    const base64 = await fileToBase64(file);
+    const mode = document.querySelector("input[name=mode]:checked").value;
+    
+    const message = {
+      type: mode,
+      file: {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: base64
+      }
+    };
+
+    if (mode === "private") {
+      const to = privateTargetSpan.dataset.target;
+      if (!to) {
+        alert("Selecciona un usuario para enviarle el archivo (clic en la lista).");
+        return;
+      }
+      message.to = to;
+    }
+
+    ws.send(JSON.stringify(message));
+    fileInput.value = "";
+  } catch (error) {
+    console.error("Error al procesar el archivo:", error);
+    alert("Error al procesar el archivo");
+  }
+};

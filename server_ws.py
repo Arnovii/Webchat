@@ -100,17 +100,29 @@ async def handle_message(sender_id: str, msg: dict):
         console.print(f"[blue][LIST_REQUEST][/blue] {sender_name} ({sender_id}) pidió la lista")
 
     elif mtype == "group":
-        text = (msg.get("text") or "").strip()
-        if not text:
-            return
-        payload = {
-            "type": "message",
-            "from": sender_id,
-            "name": sender_name,
-            "text": text,
-            "group": True,
-        }
-        console.print(f"[green][GROUP][/green] {sender_name} ({sender_id}) -> [bold]GRUPO[/]: {text}")
+        # Comprobar si es un mensaje de texto o un archivo
+        if "file" in msg:
+            file_name = msg["file"].get("name", "unknown")
+            payload = {
+                "type": "message",
+                "from": sender_id,
+                "name": sender_name,
+                "file": msg["file"],
+                "group": True,
+            }
+            console.print(f"[green][GROUP-FILE][/green] {sender_name} ({sender_id}) -> [bold]GRUPO[/]: {file_name}")
+        else:
+            text = (msg.get("text") or "").strip()
+            if not text:
+                return
+            payload = {
+                "type": "message",
+                "from": sender_id,
+                "name": sender_name,
+                "text": text,
+                "group": True,
+            }
+            console.print(f"[green][GROUP][/green] {sender_name} ({sender_id}) -> [bold]GRUPO[/]: {text}")
         to_remove = []
         async with clients_lock:
             items = list(clients.items())
@@ -123,25 +135,50 @@ async def handle_message(sender_id: str, msg: dict):
             await remove_client(cid)
 
     elif mtype == "private":
-        text = (msg.get("text") or "").strip()
         to_id = msg.get("to")
-        if not text or not to_id:
-            await send_json(sender["ws"], {"type": "error", "message": "private requires 'to' and 'text'"})
+        if not to_id:
+            await send_json(sender["ws"], {"type": "error", "message": "private requires 'to'"})
             return
+            
+        # Comprobar si es un archivo o texto
+        if "file" in msg:
+            file_info = msg["file"]
+            if not file_info:
+                await send_json(sender["ws"], {"type": "error", "message": "invalid file data"})
+                return
+        else:
+            text = (msg.get("text") or "").strip()
+            if not text:
+                await send_json(sender["ws"], {"type": "error", "message": "private requires 'text' or 'file'"})
+                return
         async with clients_lock:
             target = clients.get(to_id)
         if not target:
             await send_json(sender["ws"], {"type": "error", "message": "target not connected"})
             console.print(f"[yellow][PRIVATE-FAILED][/yellow] {sender_name} -> {to_id} : target not connected")
             return
-        payload = {
-            "type": "message",
-            "from": sender_id,
-            "name": sender_name,
-            "text": text,
-            "group": False,
-        }
-        console.print(f"[magenta][PRIVATE][/magenta] {sender_name} ({sender_id}) -> {target['name']} ({to_id}): {text}")
+        # Crear el payload según sea archivo o texto
+        if "file" in msg:
+            file_name = msg["file"].get("name", "unknown")
+            payload = {
+                "type": "message",
+                "from": sender_id,
+                "name": sender_name,
+                "file": msg["file"],
+                "group": False,
+                "to": to_id
+            }
+            console.print(f"[magenta][PRIVATE-FILE][/magenta] {sender_name} ({sender_id}) -> {target['name']} ({to_id}): {file_name}")
+        else:
+            payload = {
+                "type": "message",
+                "from": sender_id,
+                "name": sender_name,
+                "text": text,
+                "group": False,
+                "to": to_id
+            }
+            console.print(f"[magenta][PRIVATE][/magenta] {sender_name} ({sender_id}) -> {target['name']} ({to_id}): {text}")
         try:
             # Enviar el mensaje tanto al destinatario como al remitente
             await send_json(target["ws"], payload)
