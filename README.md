@@ -3,7 +3,7 @@ https://lavenderblush-lark-407478.hostingersite.com
 
 Un servidor de chat en tiempo real construido con Python WebSockets y una interfaz web moderna.
 
-## �� Características
+##  Características
 
 - **Chat en tiempo real** usando WebSockets
 - **Mensajes privados** entre usuarios
@@ -17,7 +17,7 @@ Un servidor de chat en tiempo real construido con Python WebSockets y una interf
 - Python 3.7 o superior
 - pip (gestor de paquetes de Python)
 
-## ��️ Instalación
+##  Instalación
 
 ### 1. Clonar el repositorio
 ```bash
@@ -42,7 +42,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## �� Uso
+##  Uso
 
 ### 1. Configurar certificados SSL (opcional)
 Si quieres usar SSL, coloca tus certificados en la raíz del proyecto:
@@ -58,6 +58,6 @@ El servidor se ejecutará en:
 - **Sin SSL**: `ws://localhost:24454`
 - **Con SSL**: `wss://localhost:24454`
 
-### 3. Conectar clientes
-Abre `client/index.html` en tu navegador o conecta clientes WebSocket al servidor.
+### 3. Conectarse a través de:
+https://lavenderblush-lark-407478.hostingersite.com
 
